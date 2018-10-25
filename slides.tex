@@ -25,12 +25,12 @@
 \end{frame}
 
 
-\section{Optimization and Profiling of Parallel Code}
 
-\subsection{Paraver et al: an overview}
+
+\section{Introduction}
 
 \frame{
-  \frametitle{\insertsectionhead}
+  \frametitle{Paraver et al: an overview of BSC Performance Tools}
   % \item ompP
   \begin{block}{Leveraging BSC's HPC Performance
       Tools~\footnote{Barcelona Supercomputing Center Performance
@@ -39,7 +39,7 @@
       optimize parallel applications}
     \begin{center}
       Basic toolchain:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    \item Extrae $\Rightarrow$ Paraver $\Rightarrow$ Dimemás
+    \item Extrae $\Rightarrow$ Paraver $\Rightarrow$ Dimemas
     \end{center}
   \end{block}
 
@@ -47,7 +47,7 @@
   \item[Extrae:] package that generates Paraver-trace files for
     a post-morten analysis
   \item[Paraver:] trace visualization and analysis browser
-  \item[Dimemás:] high-abstracted network simulator for message-passing programs
+  \item[Dimemas:] high-abstracted network simulator for message-passing programs
   \end{description}
 }
 
@@ -55,9 +55,13 @@
   \frametitle{BSC's performance analysis tools}
 
   Let's embrace again this \underline{core idea} (from a previous slide):
-  \begin{quote}
-    Profile first, optimize later
-  \end{quote}
+
+  \begin{block}{}
+    \begin{quotation}
+      Profile first, optimize later
+    \end{quotation}
+  \end{block}
+
   \begin{itemize}
   \item Analysis must be the first step towards the optimization of an
     application
@@ -75,6 +79,10 @@
     \end{itemize}
   \end{block}
 }
+
+
+
+\section{Dynamic instrumentation to trace programs with {\tt extrae}}
 
 \frame{
   \frametitle{Extrae}
@@ -96,7 +104,7 @@
   \frametitle{Extrae: main features}
 
   \begin{itemize}
-  \item Parallel programming models %\tikzmark{start}
+  \item Parallel programming models \tikzmark{start}
     \begin{itemize}
     \item MPI, OpenMP, pthreads, OmpSs, CUDA, OpenCL,\\ Java, Python\ldots
     \end{itemize}
@@ -104,7 +112,7 @@
     \begin{itemize}
     \item Intel, Cray, BlueGene, MIC, ARM, Android,\\ Fujitsu Spark\ldots
     \end{itemize}
-  \item Performance Counters
+  \item Hardware Performance Counters
     \begin{itemize}
     \item Using PAPI interface
     \end{itemize}
@@ -114,17 +122,17 @@
     \item OpenMP outlined routines
     \item Selected user functions (Dyninst)
     \end{itemize}
-  \item Periodic sampling %\tikzmark{end}
+  \item Periodic sampling \tikzmark{end}
   \item User events (Extrae API)
   \end{itemize}
 
-%  \begin{tikzpicture}[remember picture,overlay]
-%    \draw[decorate,decoration={calligraphic brace}]
-%    ([yshift=10pt,xshift=150pt]{{pic cs:end}|-{pic cs:start}}) --
-%    node[xshift=5pt,anchor=west] {\parbox{5cm}{No need to\\ recompile/link!}}
-%    ([xshift=150pt]{pic cs:end})
-%    ;
-%  \end{tikzpicture}
+  \begin{tikzpicture}[remember picture,overlay]
+    \draw[decorate,decoration={calligraphic brace}]
+    ([yshift=10pt,xshift=150pt]{{pic cs:end}|-{pic cs:start}}) --
+    node[xshift=5pt,anchor=west] {\parbox{5cm}{No need to\\ recompile/link!}}
+    ([xshift=150pt]{pic cs:end})
+    ;
+  \end{tikzpicture}
 }
 
 \frame{
@@ -182,17 +190,25 @@
   \item Adapt the job submission script
   \item \structure{[optional]} Tune the Extrae XML configuration file
     \begin{itemize}
-    \item~\mbox{Examples distributed with Extrae: {\footnotesize \tt
-          \$EXTRAE\_HOME/share/example}~\footnote{In Finisterrae
-          II:\\~~~{\scriptsize EXTRAE\_HOME=/opt/cesga/easybuild-cesga/software/MPI/gcc/6.4.0/openmpi/2.1.1/extrae/3.5.2}}}
+    \item Examples distributed with Extrae:\\
+      \hfill {\footnotesize \tt \$\{EXTRAE\_HOME\}/share/example}~\footnote{In
+        Finisterrae II:\\~~~{\scriptsize
+          EXTRAE\_HOME=/opt/cesga/easybuild-cesga/software/MPI/gcc/6.4.0/openmpi/2.1.1/extrae/3.5.2}}
     \end{itemize}
-  \item Run the job to generate the trace
+  \item Submit/Run the job to generate the trace
   \end{enumerate}
+
+  \pause
+
+  All details in Extrae official documentation:
+  {\small \url{https://tools.bsc.es/sites/default/files/documentation/pdf/extrae-3.5.2-user-guide.pdf}}
 }
+
+
 
 \begin{frame}[fragile]{Extrae: submission script}
 
-  \vspace*{-0.2cm}
+  \vspace*{-0.8cm}
   \begin{lstlisting}[style=shell,gobble=3,caption={submit\_trace.sh}]
     #!/bin/sh
     #SBATCH -t 00:20:00 # execution time hh:mm:ss *OB*
@@ -201,7 +217,7 @@
     ##SBATCH -N 16  #nodes
     #SBATCH -p cola-corta
 
-    @module load extrae/3.5.2
+    @module load gcc/6.4.0 openmpi/2.1.1 extrae/3.5.2
     # export TRACE_NAME=trace_filename.prv # *OP*
     @
     srun -n 16 @${HOME}/trace.sh@ parallel_binary [params]
@@ -209,7 +225,7 @@
 
   \pause
 
-  \vspace*{-0.2cm}
+  \vspace*{-0.8cm}
   \begin{lstlisting}[style=shell,gobble=3,caption={trace.sh}]
     #!/bin/sh
     source /opt/cesga/easybuild-cesga/software/MPI/gcc/6.4.0\
@@ -245,13 +261,41 @@
 \frame{
   \frametitle{Extrae: XML configuration}
 
-  See examples in {\tt \${EXTRAE\_HOME}/example/LINUX}
+  See examples in {\tt \$\{EXTRAE\_HOME\}/share/example}
 
   For example:
   \begin{itemize}
   \item for MPI + OpenMP:\\
-    {\tt \${EXTRAE\_HOME}/example/LINUX/MPI+OMP/extrae.xml}
+    {\tt \$\{EXTRAE\_HOME\}/share/example/MPI+OMP/extrae.xml}
+  \item only MPI:\\
+    {\tt \$\{EXTRAE\_HOME\}/share/example/MPI/extrae.xml}
+  \item only OpenMP:\\
+    {\tt \$\{EXTRAE\_HOME\}/share/example/OMP/extrae.xml}
   \end{itemize}
+}
+
+\frame{
+  \frametitle{Extrae: XML configuration, easy to customize (i)}
+
+  \begin{figure}
+    \hspace*{-0.5cm}\includegraphics[width=1.1\textwidth]{extraexml1}
+  \end{figure}
+}
+
+\frame{
+  \frametitle{Extrae: XML configuration, easy to customize (ii)}
+
+  \begin{figure}
+    \hspace*{-.8cm}\includegraphics[width=1.15\textwidth]{extraexml2}
+  \end{figure}
+}
+
+\frame{
+  \frametitle{Extrae: XML configuration, easy to customize (iii)}
+
+  \begin{figure}
+    \hspace*{-0.5cm}\includegraphics[width=1.1\textwidth]{extraexml3}
+  \end{figure}
 }
 
 \begin{frame}[fragile]{Extrae: job sumission and trace files}
@@ -268,6 +312,10 @@
     \end{lstlisting}
   \end{enumerate}
 \end{frame}
+
+
+
+\section{Performance analysis with {\tt paraver}}
 
 \frame{
   \frametitle{Paraver}
@@ -310,15 +358,17 @@
   Two main displays to provide performance information:
   \begin{description}
   \item[Timeline:]
-    Represents behavior of application along time and processes
+    Behavior of application along time and processes
     \begin{figure}
       \includegraphics[width=0.7\textwidth]{paravertimeline}
     \end{figure}
 
     \pause
 
-  \item[Statistics:] {\small (\emph{aka} \underline{Profile window})}
-    Numerical analysis of the data
+  \item[Tables:] Numerical analysis of the data
+    \begin{itemize}
+    \item Profiles, histograms, correlations
+    \end{itemize}
     \begin{figure}
       \hspace*{-0.5cm}\includegraphics[width=0.4\textwidth]{paraverhistogram}
       \includegraphics[width=0.43\textwidth]{paraverdata}
@@ -326,59 +376,760 @@
   \end{description}
 }
 
-% \subsection{Shared memory (OpenMP)}
+\frame{
+  \frametitle{Paraver, a performance data browser}
 
-% \frame{
-% }
+  \begin{figure}
+    \includegraphics[width=\textwidth]{paraverworkflow}
+  \end{figure}
+}
 
-% \subsubsection{Load balancing optimization}
+\frame{
+  \frametitle{Paraver: Profiles, histograms, correlations}
 
-% \frame{
-% }
+  \begin{figure}
+    \hspace*{-0.5cm}\includegraphics[width=1.1\textwidth]{paravercor}
+  \end{figure}
+}
 
-% \subsubsection{Communication analysis and optimization}
+\frame{
+  \frametitle{Paraver: Analyzing variability through histograms and timelines}
 
-% \frame{
-% }
+  Key idea in {\tt paraver}: {\bf Gradient}
 
-% \subsection{Distributed memory (MPI)}
+  \vspace*{-0.3cm}
+  \begin{figure}
+    \hspace*{-0.5cm}\includegraphics[width=1.1\textwidth]{paraveranal}
+  \end{figure}
+}
 
-% \frame{
-% }
+\frame{
+  \frametitle{Paraver: Improvement after detecting imbalances}
 
-% \subsubsection{Load balancing optimization}
+  After some months of hard work\ldots\footnote{Real experience from a
+    BSC experiment}
 
-% \frame{
-% }
+  \begin{figure}
+    \hspace*{-0.8cm}\includegraphics[width=1.15\textwidth]{paraverimprove}
+  \end{figure}
+}
 
-% \subsubsection{Communication analysis and optimization}
+\frame{
+  \frametitle{Paraver: From tables to timelines}
 
-% \frame{
-% }
+  Where in the timeline do the values in certain table columns appear?
+  \vspace*{-0.5cm}
+  \begin{itemize}
+  \item for example, I want to see the time distribution of a given routine
+  \end{itemize}
+  \vspace*{-0.2cm}
+  \begin{figure}
+    \hspace*{-0.8cm}\includegraphics[width=1.15\textwidth]{paravertables}
+  \end{figure}
+}
 
-% \subsection{Hybrid parallel programming: shared + distributed Mem}
+\begin{frame}[fragile]{Install {\tt paraver} in your computer}
+  \begin{itemize}
+  \item Download {\tt paraver} from the official site:\\
+    \hfil \url{https://tools.bsc.es/downloads}
+  \item Download the tutorials and uncompress them into the {\tt
+      paraver} directory:\\
+    \hfil \url{https://tools.bsc.es/paraver-tutorials}
+  \item Launch paraver. For example: (use your installation path)
+    \begin{lstlisting}[style=shell,gobble=3]
+      /opt/wxparaver-4.7.2-Linux_x86_64/bin/wxparaver
+    \end{lstlisting}
+  \item Check the tutorials: {\small (also available in pdf and html)}\\
+    \hfil Help$\rightarrow$Tutorials
+  \end{itemize}
+\end{frame}
 
-% \frame{
-% }
 
-% \subsubsection{Load balancing optimization}
+%\section{Parametric analysis of behaviour with {\tt dimemas}}
 
-% \frame{
-% }
+%\begin{frame}
+%\end{frame}
 
-% \subsubsection{Communication analysis and optimization}
+\section{Visualization and optimization of shared memory parallelized codes}
 
-% \frame{
-% }
+\begin{frame}{Shared-memory parallelized codes}
+\begin{itemize}
+    \item These codes use all the cores available within a node of a supercomputer/cluster
+    \item In order to do this, several threads/tasks are executed concurrently
+    \item It can ben combined with vectorization that happens within each core
+    \item There are different libraries to exploit this kind of parallelism
+        \begin{itemize}
+            \item OpenMP (The most common one) \uncover<2>{\textcolor{red}{We will focus on this study case}}
+            \item Intel Threading Building Blocks
+            \item Intel Task Parallel Library
+            \item Message Passing Interface (MPI): although this library is mainly used for distributed-memory environments
+            \item OpenCL: although this library is mainly used for GPGPU
+        \end{itemize}
+\end{itemize}
+\end{frame}
 
-\appendix
+\subsection{Small intro to OpenMP}
 
-\begin{frame}[allowframebreaks]{References}
+\begin{frame}{Small intro to OpenMP}
+\emph{OpenMP}\footnote{\url{https://computing.llnl.gov/tutorials/openMP/}}  is a parallel-programming API for shared-memory environments that can be used in virtually any desktop operative system (Linux, MacOS, Windows,\ldots)
 
-  \nocite{*}
-  \bibliography{slides}
-  \bibliographystyle{abbrv}
+Languages supported:
+\begin{itemize}
+    \item C/C++
+    \item Fortran
+\end{itemize}
 
+Main OpenMP components:
+\begin{itemize}
+    \item Compiler directives (a.k.a. pragmas)
+    \item Library routines
+    \item Environment variables
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Small intro to OpenMP: Compiler directives}
+OpenMP compiler directives\footnote{\url{https://computing.llnl.gov/tutorials/openMP/\#Directives}}  appear on your code and they are ignored although you indicate otherwise to the compiler
+\begin{description}
+\item[In GCC:] gcc -fopenmp
+\item[In ICC:] icc -openmp
+\end{description}
+%https://computing.llnl.gov/tutorials/openMP/
+%and in general https://hpc.llnl.gov/training/tutorials
+
+General form of a compiler directive
+
+\begin{verbatim}
+#pragma sentinel directive-name [clause, ...]
+\end{verbatim}
+
+OpenMP example:
+
+\begin{verbatim}
+#omp parallel default(shared) private(a,b)
+\end{verbatim}
+
+\end{frame}
+
+\begin{frame}[fragile]{Small intro to OpenMP: Run-time library routines}
+The OpenMP API includes an ever-growing number of run-time library routines\footnote{\url{https://computing.llnl.gov/tutorials/openMP/\#RunTimeLibrary}} .
+
+These routines are used for a variety of purposes:
+
+\begin{itemize}
+    \tiny
+    \item Setting and querying the number of threads
+    \item Querying a thread's unique identifier (thread ID), a thread's ancestor's identifier, the thread team size
+    \item Setting and querying the dynamic threads feature
+    \item Querying if in a parallel region, and at what level
+    \item Setting and querying nested parallelism
+    \item Setting, initializing and terminating locks and nested locks
+    \item Querying wall clock time and resolution
+\end{itemize}
+
+If you want to use them you have to include the headers
+
+\begin{verbatim}
+    #include <omp.h>
+\end{verbatim}
+
+An example
+
+\begin{verbatim}
+    int omp_get_num_threads(void);
+\end{verbatim}
+
+\end{frame}
+
+\begin{frame}[fragile]{Small intro to OpenMP: Environment variables}
+OpenMP provides several environment variables\footnote{\url{https://computing.llnl.gov/tutorials/openMP/\#EnvironmentVariables}} for controlling the execution of parallel code at run-time.
+
+These environment variables can be used to control such things as:
+\begin{itemize}
+    \tiny
+    \item Setting the number of threads
+    \item Specifying how loop iterations are divided
+    \item Binding threads to processors
+    \item Enabling/disabling nested parallelism; setting the maximum levels of nested parallelism
+    \item Enabling/disabling dynamic threads
+    \item Setting thread stack size
+    \item Setting thread wait policy
+\end{itemize}
+
+An example
+
+\begin{verbatim}
+export OMP_NUM_THREADS=8
+\end{verbatim}
+    
+\end{frame}
+
+\begin{frame}[fragile]{Small intro to OpenMP: Parallel region construct}
+
+A parallel region is a block of code that will be executed by multiple threads.
+
+Syntax:
+
+\begin{verbatim}
+    #pragma omp parallel [clause ...] newline
+    
+    structured_block
+\end{verbatim}
+Possible clauses\footnote{\url{https://computing.llnl.gov/tutorials/openMP/\#Clauses}}:
+    \begin{description}
+    \footnotesize
+    \item[private (list)] It declares variables in its list to be private to each thread
+    \item[shared (list)] It declares variables in its list to be shared among all the thread in the team
+    \item[default (shared|none)]It allows the user to specify a default scope for all variables in the lexical extent of any parallel region.
+    \item[] \ldots
+    \end{description}
+
+\end{frame}
+
+\begin{frame}[fragile]{Small intro to OpenMP: Work-sharing constructs}
+
+The DO / for directive specifies that the iterations of the loop immediately following it must be executed in parallel by the team.
+
+Syntax:
+
+\begin{verbatim}
+    #pragma omp for [clause ...]  newline    
+    
+    for_loop
+\end{verbatim}
+
+The SINGLE directive specifies that the enclosed code is to be executed by only one thread in the team.
+
+Syntax:
+
+\begin{verbatim}
+    #pragma omp single [clause ...]  newline 
+    
+    structured_block
+\end{verbatim}
+
+\end{frame}
+
+\begin{frame}[fragile]{Small intro to OpenMP: Task construct}
+The task construct\footnote{\url{https://computing.llnl.gov/tutorials/openMP/\#Task}}  defines an explicit task, which may be executed by the encountering thread, or deferred for execution by any other thread in the team.
+
+\begin{verbatim}
+    #pragma omp task [clause ...]  newline 
+
+    structured_block
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Small intro to OpenMP: Depend clause}
+The depend clause\footnote{\url{http://www.nersc.gov/users/software/programming-models/openmp/openmp-tasking/}} (available since OpenMP 4.0) takes a type followed by a variable or list of variables.
+
+\begin{verbatim}
+#pragma omp task depend(in: x) depend( out: y) 
+                 depend(inout: z)    
+\end{verbatim}
+
+The (address of) variables passed to the depend clause are used to correctly order the tasks. These constraints are determined by the type of dependency specified:
+
+\begin{itemize}
+\footnotesize
+\item IN dependencies will make a task dependent on the last task that used the same variable as an out (or inout) dependency. 
+\item OUT dependencies will make a task dependent on the last task that used the same variable as an in, out (or inout) dependency.
+\item INOUT dependencues are the same as an out dependency, they are only used for readability.
+\end{itemize}
+\end{frame}
+
+
+\subsection{Solving with Extrae and Paraver common issues in shared-memory parallelized programs}
+
+\begin{frame}{Most useful configurations of Paraver}
+\centering
+OpenMP->Analysis->omp\_profile.cfg (Table)
+
+\begin{columns}
+\begin{column}{0.5\textwidth}
+\includegraphics[width=\textwidth]{figs/omp_profile_table.png}
+\end{column}
+\begin{column}{0.5\textwidth}
+  \begin{itemize}
+      \item One column per parallel region
+      \item One row per thread
+      \item Contains duration of each thread
+      \item Load imbalance is detected by Avg/Max statistic
+  \end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Most useful configurations of Paraver}
+\centering
+OpenMP->Analysis->omp\_profile.cfg (Timeline)
+
+\includegraphics[width=0.8\textwidth]{figs/omp_profile_timeline.png}
+
+It shows the execution of thread through time. 
+\end{frame}
+
+\begin{frame}{Common issues in shared-memory parallelized programs}
+\begin{description}
+\item[Issue \#1] Locks and waits due to suboptimal usage of the parallel library
+\item[Issue \#2] Load imbalance
+\item[Issue \#3] False sharing
+\item[Issue \#4] Inadequate tasks exploitation
+\item[Issue \#5] Poor locality
+\end{description}
+\end{frame}
+
+\begin{frame}{Issue \#1: Locks and waits due to suboptimal usage of the parallel library}
+Examples of this in OpenMP are:
+\begin{itemize}
+    \item Avoid the critical region construct
+    \item Avoid large critical regions
+    \item Maximize parallel regions
+    \item Avoid parallel regions in inner loops
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{An example of Issue \#1 in Paraver (code01)}
+The difference between these two version of the same code is really subtle
+\begin{columns}
+\begin{column}{0.57\textwidth}
+\begin{lstlisting}[style=shell,basicstyle=\scriptsize\ttfamily,gobble=3,caption={Several parallel regions}]
+     #pragma omp parallel for private (i)
+    for (j = 0; j < _PB_M; j++)
+    (...)
+    #pragma omp parallel for private (i)
+    for (j = 0; j < _PB_M; j++)
+    (...)
+    
+    #pragma omp parallel for private (j)
+    for (i = 0; i < _PB_N; i++)
+    (...)
+    #pragma omp parallel for private (j2, i)
+    for (j1 = 0; j1 < _PB_M-1; j1++)
+    (...)
+  \end{lstlisting}
+  \end{column}
+\begin{column}{0.43\textwidth}
+  \begin{lstlisting}[style=shell,gobble=3,basicstyle=\scriptsize\ttfamily,caption={One parallel region}]
+   #pragma omp parallel
+  {
+    #pragma omp for private (i)
+    for (j = 0; j < _PB_M; j++)
+    (...)
+    #pragma omp for private (i)
+    for (j = 0; j < _PB_M; j++)
+    (...)
+    #pragma omp for private (j)
+    for (i = 0; i < _PB_N; i++)
+    (...)
+    #pragma omp for private (j2, i)
+    for (j1 = 0; j1 < _PB_M-1; j1++)
+    (...)
+  }
+  \end{lstlisting}
+  \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{An example of Issue \#1 in Paraver (code01)}
+The different in the visualization when zooming in the first three loops are noticeable
+\centering
+\begin{columns}
+\begin{column}{0.5\textwidth}
+\\\underline{With several parallel regions}
+\includegraphics[width=0.99\textwidth]{figs/Parallel_functions@correlation_v0.png}
+ \end{column}
+ \begin{column}{0.5\textwidth}
+ \\\underline{With one parallel region}
+\includegraphics[width=0.99\textwidth]{figs/Parallel_functions@correlation_v1.png}
+ \end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{An example of Issue \#1 in Paraver (code01)}
+Do it yourself
+\begin{itemize}
+    \item Connect to FT2 with X export: {\tt ssh -X youruser@ft2.cesga.es}
+    \item Clone the repository: {\tt git clone https://github.com/diegoandradecanosa/extraeCoursecodes}
+    \item Enter in directory code01: {\tt cd extraeCoursecodes/code01}
+    \item Generate the traces (they have already been generated by me): {\tt ./generatetraces.sh}
+    \item Load the paraver module:  {\tt module load paraver}
+    \item Load the first trace: {\tt wxparaver correlation\_v0.prv}
+    \item Visualize using configuration OpenMP/analysis/omp\_profile.cfg -> Open Control Window -> Zoom in the first part of the trace
+    \item Do the same for the other trace correlation\_v1.prv
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Issue \#2: Load imbalance}
+It is a big issue in irregular computations, such as:
+\begin{itemize}
+    \item Triangular loops
+    \item Parallel traversing of linked lists
+    \item Also, when the body of the parallel loop has conditional statements
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{An example of Issue \#2 in Paraver (code02)}
+These two codes distribute the same workload using different policies
+\begin{columns}
+\begin{column}{0.5\textwidth}
+\begin{lstlisting}[style=shell,basicstyle=\scriptsize\ttfamily,gobble=3,caption={Default scheduling}]
+    #pragma omp for private (j, k)
+    for (i = 1; i < _PB_NI; i++)
+      for (j = 0; j < _PB_NI; j++)
+        for (k = 0; k < i; k++)
+  \end{lstlisting}
+  \end{column}
+\begin{column}{0.5\textwidth}
+  \begin{lstlisting}[style=shell,gobble=3,basicstyle=\scriptsize\ttfamily,caption={Load-balance-aware scheduling}]
+    #pragma omp for private (j, k) 
+            schedule(static,8)
+    for (i = 1; i < _PB_NI; i++)
+      for (j = 0; j < _PB_NI; j++)
+	    for (k = 0; k < i; k++)
+  \end{lstlisting}
+  \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{An example of Issue \#2 in Paraver (code02)}
+A visualization of the corresponding traces with Paraver reveals that the work in the second version is more balanced
+\centering
+\begin{columns}
+\begin{column}{0.5\textwidth}
+\\\underline{Imbalance}
+\includegraphics[width=0.99\textwidth]{figs/Parallel_functions@trmm_v0.png}
+ \end{column}
+ \begin{column}{0.5\textwidth}
+ \\\underline{More balanced}
+\includegraphics[width=0.99\textwidth]{figs/Parallel_functions@trmm_v1.png}
+ \end{column}
+\end{columns}
+\end{frame}
+
+
+\begin{frame}{An example of Issue \#2 in Paraver (code02)}
+Do it yourself
+\begin{itemize}
+    \item Connect to FT2 with X export: {\tt ssh -X youruser@ft2.cesga.es}
+    \item Clone the repository: {\tt git clone https://github.com/diegoandradecanosa/extraeCoursecodes}
+    \item Enter in directory code02: {\tt cd extraeCoursecodes/code02}
+    \item Generate the traces (they have already been generated by me): {\tt ./generatetraces.sh}
+    \item Load the paraver module:  {\tt module load paraver}
+    \item Load the first trace: {\tt wxparaver trmm\_v0.prv}
+    \item Visualize using configuration OpenMP/analysis/omp\_profile.cfg -> Open Control Window -> Zoom in the first part of the trace
+    \item Do the same for the other trace trmm\_v1.prv
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}{Issue \#3: False sharing}
+False sharing is a situation where two different threads are accessing different  parts of the same cache line
+\begin{itemize}
+    \footnotesize
+    \item It is performance issue if both threads are modifying that data
+    \item The problem is that the cache coherency protocol cannot identify that they are accessing disjunct parts of the same cache line, thus, the line is invalidated in one of the cores
+    \item In OpenMP it usually happens when we use a static block-cyclic distribution with a small chunk size
+    \item It usually leads to poor scaling
+\end{itemize}
+\centering
+\includegraphics[width=0.4\textwidth]{figs/myfalsesharing.jpg}
+\end{frame}
+
+\begin{frame}{Issue \#4: Inadequate tasks exploitation}
+Tasks and task dependencies are a powerful parallelization mechanism, but the performance is highly dependent of the design of the parallel implementation
+
+And there are many possible alternate implementations
+%http://www.nersc.gov/users/software/programming-models/openmp/openmp-tasking/openmp-tasking-example-jacobi/
+\end{frame}
+
+\begin{frame}{Issue \#5: Poor locality}
+Poor locality implies a poor cache performance, and conversely a poor performance of the parallel implementation. 
+
+There are code optimizations that can help to improve the cache performance:
+\begin{itemize}
+    \item Loop tiling
+    \item Loop interchange
+    \item Loop fusion
+    \item Loop fision
+    \item \ldots
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{An example of Issue \#5 in Paraver (code05)}
+The code performs two consecutive tiled multiplications, which locality can be improved using the tiling technique
+\begin{columns}
+\begin{column}{0.5\textwidth}
+\begin{lstlisting}[style=shell,basicstyle=\scriptsize\ttfamily,gobble=3,caption={Regular matrix multiplication}]
+    #pragma omp for private (j, k)
+    for (i = 0; i < _PB_NI; i++)
+      for (j = 0; j < _PB_NJ; j++)
+        {
+          tmp[i][j] = 0;
+          for (k = 0; k < _PB_NK; ++k)
+            tmp[i][j] += alpha 
+            * A[i][k] * B[k][j];
+        }
+
+  \end{lstlisting}
+  \end{column}
+\begin{column}{0.5\textwidth}
+  \begin{lstlisting}[style=shell,gobble=3,basicstyle=\scriptsize\ttfamily,caption={Tiled matrix multiplication}]
+    #pragma omp for private (j, k)
+    /* Tiled matrix multiplication */
+  \end{lstlisting}
+  \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{An example of Issue \#5 in Paraver (code05)}
+A visualization of the L1 cache misses shows that green areas (those where the L1 number of misses is low) are more frequent in the second version.
+\centering
+\begin{columns}
+\begin{column}{0.5\textwidth}
+\\\underline{Poor locality}
+\includegraphics[width=0.99\textwidth]{figs/L1_cache_misses@2mm_v0.png}
+ \end{column}
+ \begin{column}{0.5\textwidth}
+ \\\underline{Better locality due to tiling usage}
+\includegraphics[width=0.99\textwidth]{figs/L1_cache_misses@2mm_v1.png}
+ \end{column}
+\end{columns}
+\end{frame}
+
+
+\begin{frame}{An example of Issue \#5 in Paraver (code05)}
+Do it yourself
+\begin{itemize}
+    \item Connect to FT2 with X export: {\tt ssh -X youruser@ft2.cesga.es}
+    \item Clone the repository: {\tt git clone https://github.com/diegoandradecanosa/extraeCoursecodes}
+    \item Enter in directory code02: {\tt cd extraeCoursecodes/code03}
+    \item Generate the traces (they have already been generated by me): {\tt ./generatetraces.sh}
+    \item Load the paraver module:  {\tt module load paraver}
+    \item Load the first trace: {\tt wxparaver 2mm\_v0.prv}
+    \item Visualize using configuration counters\_papi/architecture/L1D\_misses.cfg
+    \item Do the same for the other trace 2mm\_v1.prv
+\end{itemize}
+\end{frame}
+
+
+
+
+\section{Visualization and optimization of distributed memory parallelized codes}
+
+
+\begin{frame}{Distributed-memory parallelized codes}
+\begin{itemize}
+    \item These codes use several nodes in a supercomputer/cluster which are connected through an interconnection network
+    \item One or several processes are executed on each node
+    \item Each task can be itself parallelized (in shared-memory) using (for instance) OpenMP
+    \item There are different libraries to exploit this kind of parallelism
+        \begin{itemize}
+            \item Message Passing Interface (MPI) (The most common one) \uncover<2>{\textcolor{red}{We will focus on this study case}}
+            \item Unified Parallel C (UPC) and PGAS libraries and languages in general
+            \item Specificic purpose libraries, such as Hadoop (for map-reduce appications) or Tensorflow (for deep learning) 
+        \end{itemize}
+\end{itemize}
+\end{frame}
+
+\subsection{Small intro to MPI}
+
+\begin{frame}{Small intro to MPI}
+The \emph{Message Passing Interface (MPI)}\footnote{\url{https://computing.llnl.gov/tutorials/mpi/}}  is a  message passing library standard)
+
+The latest version of the standard is MPI 3.1 (2015)
+
+Popular MPI implementations:
+\begin{itemize}
+    \item MPICH
+    \item OpenMPI
+    \item Intel MPI
+\end{itemize}
+
+Programming model
+
+\centering
+\includegraphics[width=0.7\textwidth]{figs/hybrid_mem.png}
+\end{frame}
+
+\begin{frame}{Small intro to MPI: Basics}
+\begin{description}
+\item[Headers] Include the MPI header using {\tt \#include <mpi.h>}
+\item[Functions] In C all the MPI functions start with mpi\_
+\item[Error codes] Most MPI functions includes/returns an error parameter/code. However, you won't be able to capture it as they usually break the program
+\item[Groups and communications] They are MPI objects which define groups of MPI processes that can communicate to each other. {\tt MPI\_WORLD\_COMM} is the universal communicator
+\item[Rank] It is the unique id of a process within a communicator
+\item[Compiling] Use one of the MPI wrapper scripts of an implementation (e.g. {\tt mpicc}) to compile easily a MPI code
+\item[Running] Use the mpirun/srun command to run an MPI program
+\end{description}
+\end{frame}
+
+\begin{frame}{Small intro to MPI: Structure of a MPI program}
+\centering
+\includegraphics[width=0.5\textwidth]{figs/prog_structure.png}
+\end{frame}
+
+\begin{frame}{Small intro to MPI: Types of MPI routines}
+\begin{itemize}
+\footnotesize
+    \item Environment management: Initialize and finalize environment, get the rank of the current process, \ldots
+    \item Point to point communications: Send and receive data between a pair of nodes
+        \begin{itemize}
+            \item Blocks vs non-blocking routines
+        \end{itemize}
+    \item Collective communications: Send and receive data between groups of nodes, one to many, many to one, many to many
+        \begin{itemize}
+            \item Broadcast: same is data is broadcast to several processes
+            \item Scatter: different pieces of data are sent to different processes
+            \item Gather: different pieces of data are received from different processes
+            \item Reduce: different pieces of data of different processes are combined through a given operation
+        \end{itemize}
+    \item (Vector) derived data types: Define special data types that can be used to encapsulate the information that is sent or received 
+    \item Group \& communicator management: Create special groups and communicators
+    \item Virtual topologies: Create virtual topologies that are used to arrange processes in a geometric shape
+\end{itemize}
+    
+\end{frame}
+
+\begin{frame}[fragile]{Small intro to MPI: Hello world}
+
+ \begin{lstlisting}[style=C,gobble=3,caption={HelloWorld.c}]
+    #include <stdio.h>
+    #include <mpi.h>
+
+    main(int argc, char **argv)
+    {
+        int node;
+   
+        MPI_Init(&argc,&argv);
+        MPI_Comm_rank(MPI_COMM_WORLD, &node);
+     
+        printf("Hello World from Node %d\n",node);
+            
+        MPI_Finalize();
+    }
+\end{lstlisting}
+\end{frame}
+%Hybrid MPIOpenPM adjustment of the number of MPI processes and OpenMP thread
+%Blocking vs non-blocking communication
+%Exploration of different job distribution policies for the same algorithm
+
+\subsection{Identifying MPI Performance issues with Paraver}
+% Main source: https://computing.llnl.gov/tutorials/mpi_performance/#Factors
+
+\begin{frame}{Studying a MPI trace with Paraver: Step 1 - Parallel efficiency}
+Start with configuration scripts/parallel\_eficciency.cfg (Table)
+
+\begin{columns}
+\begin{column}{0.5\textwidth}
+  \includegraphics[width=\textwidth]{figs/parallel_efficiency_table.png}
+\end{column}
+\begin{column}{0.5\textwidth}
+In the running column
+  \begin{itemize}
+      \item The average value represents parallel efficiency (the larger the better)
+      \item The maximum value is the communication efficiency (the larger the better)
+      \item The Avg/Max represent the load imbalance (the larger the better)
+      \item This code has a heavy load imbalance
+  \end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Studying a MPI trace with Paraver: Step 1 (alt) - Useful duration}
+It can be confirmed with this other configuration General/views/useful\_duration.cfg (Table)
+
+  \includegraphics[width=0.6\textwidth]{figs/useful_duration_timeline.png}
+  
+  It shows the average duration of a computation between MPI calls
+  
+  The work is here clearly unbalanced (green represent much shorter values than blue)
+
+\end{frame}
+
+\begin{frame}{Studying a MPI trace with Paraver: Step 1 (alt) - MPI stats}
+The mpi/analysis/mpi\_stats.cfg configuration show us another view of what is going on
+
+  \includegraphics[width=0.8\textwidth]{figs/mpi_stats.png}
+
+    It exists an evident load imbalance
+    
+\end{frame}
+
+\begin{frame}{Studying a MPI trace with Paraver: Step 2 - IPC profile}
+To identify the cause of the imbalance, we can use the IPC profile extraeCoursecodes/common/cfgs/IPC\_profile.cfg (Table)
+
+\begin{columns}
+\begin{column}{0.5\textwidth}
+  \includegraphics[width=\textwidth]{figs/ipc_profile_table.png}
+\end{column}
+\begin{column}{0.5\textwidth}
+In the running column
+  \begin{itemize}
+      \item The Avg/Max is close to 1, so, this doesn't seem to be the cause
+  \end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Studying a MPI trace with Paraver: Step 2 - instructions profile}
+Or we can use the instruction profile extraeCoursecodes/common/cfgs/instructions\_profile.cfg (Table)
+
+\begin{columns}
+\begin{column}{0.5\textwidth}
+  \includegraphics[width=\textwidth]{figs/ins_profile_table.png}
+\end{column}
+\begin{column}{0.5\textwidth}
+In the running column
+  \begin{itemize}
+      \item The Avg/Max is  NOT close to 1, so, this  seems to be the cause
+      \item Some processes are doing more job than others
+  \end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+
+\begin{frame}{Main MPI Performance Factors}
+\begin{itemize}
+    \item The hardware platform of each node (CPU clock speed, cache, main memory,\ldots)
+    \item The interconnection network (technology, protocol, latency, bandwidth,\ldots)
+    \item \underline{The application implementation:}
+        \begin{itemize}
+            \item Algorithm efficiency and scalability
+            \item Communication to computation ratios
+            \item Load balance
+            \item Serialization
+            \item Memory access patterns
+            \item I/O required
+            \item Average message size
+            \item Types of MPI routines used (blocking/non-blocking, point-to-point/collective)            
+        \end{itemize}
+    \item  The Performance of the MPI implementation used (message buffering, protocols, synchronization, quality of the implemenation of the MPI primitives)
+\end{itemize}
+    
+\end{frame}
+
+\begin{frame}{Identifying serialization in Paraver}
+Inspecting mpi/poisson example:
+
+\begin{description}
+\item[poisson\_v0] uses blocking communication (Serialization!)
+\includegraphics[width=0.8\textwidth]{figs/MPI_call@poisson_v0.png}
+\item[poisson\_v1] uses non-blocking communication (It avoids serialization)
+\includegraphics[width=0.8\textwidth]{figs/MPI_call@poisson_v1.png}
+\end{description}
+    
+\end{frame}
+
+\begin{frame}{Identifying imbalance in Paraver}
+Inspecting mpi/prime example:
+
+\begin{description}
+\item[prime\_v0] uses a balanced distribution of the work (in this case a consecutive distribution)
+\item[prime\_v1] uses a balanced distribution of the work (in this case a cyclic distribution)
+\end{description}
+    
 \end{frame}
 
 \end{document}
