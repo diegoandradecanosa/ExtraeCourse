@@ -514,7 +514,7 @@ General form of a compiler directive
 OpenMP example:
 
 \begin{verbatim}
-#omp parallel default(shared) private(a,b)
+#pragma omp parallel default(shared) private(a,b)
 \end{verbatim}
 
 \end{frame}
@@ -946,18 +946,18 @@ This example is based on a Jacobi 2D Stencil computation. There are three versio
       for (t = 0; t < _PB_TSTEPS; t++)
       {
         for (i = 1; i < _PB_N - 1; i++)
-        #pragma omp depend(in: A[j], A[j+_PB_N], src[j-_PB_N]) 
-        depend(out: B[j])   
+    #pragma omp depend(in: A[(i-1):2][0:_PB_N+1]) 
+    depend(out: B[i][1:_PB_N])   
           for (j = 1; j < _PB_N - 1; j++)
-            B[i][j] = 0.2 * (A[i][j] 
-            + A[i][j-1] + A[i][1+j] 
-            + A[1+i][j] + A[i-1][j]);
-        #pragma omp for schedule(static) 
+            B[i][j] = 0.2 * (A[i][j] + A[i][j-1] 
+            + A[i][1+j] + A[1+i][j] + A[i-1][j]);
+
         for (i = 1; i < _PB_N-1; i++)
+        #pragma omp depend(in:B[i][1:_PB_N) 
+        depend(out:A[i][1:_PB_N])
           for (j = 1; j < _PB_N-1; j++)
             A[i][j] = B[i][j];
       }
-    }
   \end{lstlisting}
 \end{frame}
 
@@ -965,19 +965,24 @@ This example is based on a Jacobi 2D Stencil computation. There are three versio
 \begin{frame}[fragile]{An example of Issue \#4 in Paraver (code04)}
 This example is based on a Jacobi 2D Stencil computation. There are three versions of the parallel implementation of this code. 
   \begin{lstlisting}[style=shell,gobble=3,basicstyle=\scriptsize\ttfamily,caption={Parallelized with tasks (v2)}]
-    for (t = 0; t < _PB_TSTEPS; t++)
-    {
-      for (i = 1; i < _PB_N - 1; i++)
-	    #pragma omp depend(in:B[jj],B[jj+_PB_N], B[jj+_PB_N]) depend(out: A[jj])
-        for(j=i;j<((j+chunk_size) && (j< _PB_N-1));j=j+chunk_size)
-              for (jj = (j*_PB_N)+1; jj < ((j*_PB_N)+_PB_N - 1); jj++)
-                B[i][jj] = 0.2 * (A[i][jj] + A[i][jj-1] 
-                + A[i][1+jj] + A[1+i][jj] + A[i-1][jj]);
-	     #pragma omp for schedule(static) 
-         for (i = 1; i < _PB_N-1; i++)
-            for (j = 1; j < _PB_N-1; j++)
-                A[i][j] = B[i][j];
+       for (t = 0; t < _PB_TSTEPS; t++)
+      {
+        for (i = 1; i < _PB_N - 1; i++)
+         for(j=1;j< (_PB_N-1);j=j+chunk_size)
+        #pragma omp depend(in:A[(i-1):2][j:chunk_size]) 
+        depend(out: B[(i-1):2][j:chunk_size)
+          for (jj = j; jj < min(j+chunk_size,_PB_N-1); jj++)
+            B[i][jj] = 0.2 * (A[i][jj] + A[i][jj-1] + A[i][1+jj] 
+            + A[1+i][jj] + A[i-1][jj]);
+        for (i = 1; i < _PB_N-1; i++)
+         for(j=1;j< (_PB_N-1);j=j+chunk_size)
+        #pragma omp depend(in:B[i][j:chunk_size]) 
+        depend(out:A[i][j:chunk_size])
+          for (jj = j; jj < min(j+chunk_size,_PB_N-1); jj++)
+            A[i][jj] = B[i][jj];
+      }
     }
+
   \end{lstlisting}
 \end{frame}
 
